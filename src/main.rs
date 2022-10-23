@@ -1,10 +1,9 @@
 use std::convert::Infallible;
 use rocket::request::{FromRequest, Outcome};
 use rocket::http::HeaderMap;
-use rocket::{Request, Config, build};
+use rocket::{Request, Config};
 use rocket::serde::json::serde_json::{json, self};
 use dotenv::dotenv;
-use std::env;
 
 #[macro_use] extern crate rocket;
 
