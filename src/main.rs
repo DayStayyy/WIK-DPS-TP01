@@ -15,10 +15,21 @@ fn ping(headers: RequestHeaders) -> serde_json::Value {
     {
         res.as_object_mut().unwrap().insert(header.name().to_string(), json!(header.value().to_string()));
     }
-    dotenv().ok();
-
 
     res
+}
+
+#[get("/test")]
+fn test() -> &'static str {
+    dotenv().ok();
+    let port = std::env::var("PORT");
+    println!("PORT: {:?}", port);
+    if port == Ok("8080".to_string()) {
+        return "Hello, world!";
+    }
+    else {
+        return "Hello, world! (not 80)";
+    }
 }
 
 
@@ -34,7 +45,7 @@ fn not_found(req: &Request) -> serde_json::Value {
 
 #[launch]
 fn rocket() -> _ {
-    rocket::build().mount("/", routes![ping]).register("/",  catchers![internal_error, not_found])
+    rocket::build().mount("/", routes![ping,test]).register("/",  catchers![internal_error, not_found])
 }
 
 struct RequestHeaders<'h>(&'h HeaderMap<'h>);
