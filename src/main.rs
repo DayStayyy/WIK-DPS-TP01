@@ -1,12 +1,13 @@
 use std::convert::Infallible;
 use rocket::request::{FromRequest, Outcome};
 use rocket::http::HeaderMap;
-use rocket::Request;
+use rocket::{Request, Config, build};
 use rocket::serde::json::serde_json::{json, self};
 use dotenv::dotenv;
 use std::env;
 
 #[macro_use] extern crate rocket;
+
 
 #[get("/ping")]
 fn ping(headers: RequestHeaders) -> serde_json::Value {
@@ -17,19 +18,6 @@ fn ping(headers: RequestHeaders) -> serde_json::Value {
     }
 
     res
-}
-
-#[get("/test")]
-fn test() -> &'static str {
-    dotenv().ok();
-    let port = std::env::var("PORT");
-    println!("PORT: {:?}", port);
-    if port == Ok("8080".to_string()) {
-        return "Hello, world!";
-    }
-    else {
-        return "Hello, world! (not 80)";
-    }
 }
 
 
@@ -45,7 +33,13 @@ fn not_found(req: &Request) -> serde_json::Value {
 
 #[launch]
 fn rocket() -> _ {
-    rocket::build().mount("/", routes![ping,test]).register("/",  catchers![internal_error, not_found])
+    dotenv().ok();
+    let port = std::env::var("PING_LISTEN_PORT");
+    let config = Config {
+        port: port.unwrap_or("8080".to_string()).parse().unwrap(),
+        ..Config::debug_default()
+    };
+    rocket::custom(&config).mount("/", routes![ping]).register("/",  catchers![internal_error, not_found])
 }
 
 struct RequestHeaders<'h>(&'h HeaderMap<'h>);
@@ -58,4 +52,5 @@ impl<'r> FromRequest<'r> for RequestHeaders<'r> {
         Outcome::Success(RequestHeaders(request_headers))
     }
 }
+
 
